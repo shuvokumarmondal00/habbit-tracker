@@ -1,0 +1,746 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--panel:#161b22;--panel2:#1c2230;
+  --bdr:#21262d;--bdr2:#30363d;--tx:#e6edf3;--mt:#7d8590;--dm:#484f58;
+  --gr:#00d4aa;--gr-bg:rgba(0,212,170,.12);--gr-bd:rgba(0,212,170,.3);
+  --rd:#f85149;--rd-bg:rgba(248,81,73,.12);--rd-bd:rgba(248,81,73,.3);
+  --am:#e3a838;--am-bg:rgba(227,168,56,.1);--am-bd:rgba(227,168,56,.3);
+  --bl:#58a6ff;--bl-bg:rgba(88,166,255,.1);--bl-bd:rgba(88,166,255,.3);
+  --mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,sans-serif;font-size:13px;height:600px;overflow:hidden;display:flex;flex-direction:column}
+
+.topbar{background:var(--panel);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--gr)}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--gr);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.breadcrumb{font-size:11px;color:var(--mt)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--gr);animation:pulse 2s infinite}
+.mono-sm{font-family:var(--mono);font-size:11px;color:var(--mt)}
+
+.shell{display:flex;flex:1;overflow:hidden}
+
+.sidebar{width:190px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bdr);padding:12px 0;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.sb-section{font-size:9px;font-weight:600;color:var(--dm);letter-spacing:.1em;text-transform:uppercase;padding:10px 14px 3px}
+.nav-item{padding:5px 14px;font-size:11px;color:var(--mt);cursor:pointer;display:flex;align-items:center;gap:7px;border-left:2px solid transparent;transition:all .1s}
+.nav-item:hover{color:var(--tx);background:var(--panel2)}
+.nav-item.active{color:var(--gr);border-left-color:var(--gr);background:var(--gr-bg)}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+.main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+
+.dash-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dash-title{font-size:16px;font-weight:500}
+.dash-sub{font-size:11px;color:var(--mt);margin-top:2px;font-family:var(--mono)}
+.week-nav{display:flex;align-items:center;gap:6px}
+.week-nav button{background:var(--panel2);border:1px solid var(--bdr2);color:var(--mt);padding:4px 9px;border-radius:4px;cursor:pointer;font-size:11px;transition:all .1s}
+.week-nav button:hover{color:var(--tx);border-color:var(--bl-bd)}
+.week-label{font-family:var(--mono);font-size:11px;color:var(--tx);min-width:150px;text-align:center}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--bdr);border-radius:5px;padding:12px 14px}
+.kpi-label{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kpi-val{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1}
+.kpi-sub{font-size:10px;color:var(--mt);margin-top:5px}
+.kpi-bar{height:2px;background:var(--bdr2);border-radius:2px;margin-top:8px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+
+.panel{background:var(--panel);border:1px solid var(--bdr);border-radius:5px;overflow:hidden}
+.panel-header{padding:10px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+
+.habit-grid{width:100%;border-collapse:collapse}
+.habit-grid th{font-size:9px;font-weight:500;color:var(--mt);text-transform:uppercase;letter-spacing:.08em;padding:7px 8px;text-align:center;border-bottom:1px solid var(--bdr);background:var(--panel2)}
+.habit-grid th.nc{text-align:left;min-width:170px;padding-left:14px}
+.habit-grid td{padding:5px 8px;border-bottom:1px solid var(--bdr);vertical-align:middle;text-align:center}
+.habit-grid td.nc{text-align:left;padding-left:14px}
+.habit-grid tr:last-child td{border-bottom:none}
+.habit-grid tr:hover td{background:rgba(255,255,255,.02)}
+.habit-name{font-size:11px;display:flex;align-items:center;gap:7px}
+.tag{font-size:9px;font-family:var(--mono);padding:1px 5px;border-radius:3px;flex-shrink:0}
+.tag-learn{background:var(--bl-bg);color:var(--bl);border:1px solid var(--bl-bd)}
+.tag-health{background:var(--gr-bg);color:var(--gr);border:1px solid var(--gr-bd)}
+
+.cell-btn{width:30px;height:25px;border-radius:3px;border:1px solid var(--bdr2);background:var(--panel2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);color:var(--dm);transition:all .12s;user-select:none}
+.cell-btn:hover{border-color:var(--bl-bd);color:var(--bl)}
+.cell-btn.done{background:var(--gr-bg);border-color:var(--gr-bd);color:var(--gr)}
+.cell-btn.missed{background:var(--rd-bg);border-color:var(--rd-bd);color:var(--rd)}
+.streak-pill{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:8px;background:var(--am-bg);color:var(--am);border:1px solid var(--am-bd)}
+
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.heatmap-grid{display:flex;gap:2px;padding:12px 14px;flex-wrap:wrap}
+.hm-cell{width:12px;height:12px;border-radius:2px;cursor:pointer;transition:transform .1s;flex-shrink:0}
+.hm-cell:hover{transform:scale(1.3)}
+.hm-0{background:var(--bdr)}
+.hm-1{background:#0d4429}.hm-2{background:#006d32}.hm-3{background:#26a641}.hm-4{background:var(--gr)}
+.hm-missed{background:var(--rd-bg);border:1px solid var(--rd-bd)}
+.legend{display:flex;align-items:center;gap:8px;padding:0 14px 10px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mt)}
+.leg-box{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.log-body{padding:0 14px 6px;display:flex;flex-direction:column;gap:1px;max-height:160px;overflow-y:auto}
+.log-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:11px}
+.log-row:last-child{border-bottom:none}
+.log-time{font-family:var(--mono);font-size:9px;color:var(--dm);min-width:44px}
+.log-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* Drive sync bar */
+.sync-bar{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--panel2);border-bottom:1px solid var(--bdr);font-size:11px;flex-shrink:0}
+.sync-status{display:flex;align-items:center;gap:6px;flex:1}
+.sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sync-dot.ok{background:var(--gr)}
+.sync-dot.saving{background:var(--am);animation:pulse 1s infinite}
+.sync-dot.offline{background:var(--rd)}
+.sync-dot.disconnected{background:var(--dm)}
+.btn{padding:4px 10px;border-radius:4px;font-size:10px;cursor:pointer;border:1px solid;font-family:inherit;font-weight:500;transition:all .1s;white-space:nowrap}
+.btn-green{background:var(--gr-bg);color:var(--gr);border-color:var(--gr-bd)}
+.btn-green:hover{background:rgba(0,212,170,.2)}
+.btn-ghost{background:transparent;color:var(--mt);border-color:var(--bdr2)}
+.btn-ghost:hover{color:var(--tx);border-color:var(--bl-bd)}
+.btn-red{background:var(--rd-bg);color:var(--rd);border-color:var(--rd-bd)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center;min-height:100px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--bdr2);border-radius:7px;padding:20px;width:440px;max-width:95%;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;color:var(--mt);cursor:pointer;font-size:16px;padding:0 3px}
+.modal-close:hover{color:var(--tx)}
+.form-row{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.08em}
+.form-input{background:var(--panel2);border:1px solid var(--bdr2);color:var(--tx);border-radius:4px;padding:6px 9px;font-size:12px;font-family:inherit;outline:none;width:100%}
+.form-input:focus{border-color:var(--gr-bd)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-footer{display:flex;justify-content:flex-end;gap:7px}
+.habit-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:4px;border:1px solid var(--bdr);background:var(--panel2);font-size:11px}
+.habit-item-name{flex:1}
+.habit-item-meta{color:var(--mt);font-size:10px;font-family:var(--mono)}
+
+/* Drive setup */
+.drive-setup{background:var(--panel);border:1px solid var(--bl-bd);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.drive-setup-title{font-size:12px;font-weight:600;color:var(--bl);display:flex;align-items:center;gap:7px}
+.drive-step{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--mt);line-height:1.5}
+.drive-step-num{background:var(--bl-bg);color:var(--bl);border:1px solid var(--bl-bd);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;flex-shrink:0;margin-top:1px}
+.code-block{background:var(--bg);border:1px solid var(--bdr);border-radius:4px;padding:6px 10px;font-family:var(--mono);font-size:10px;color:var(--gr);word-break:break-all}
+
+.toast{position:fixed;bottom:16px;right:16px;background:var(--panel);border:1px solid var(--gr-bd);color:var(--gr);font-size:11px;font-family:var(--mono);padding:8px 14px;border-radius:4px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+</style>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo"><div class="logo-dot"></div>HABIT TRACKER</div>
+    <div class="breadcrumb">/ <span id="bc-title">DevOps & SRE Learning</span> / Weekly Dashboard</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-dot"></div>
+    <span class="mono-sm">LIVE</span>
+    <span class="mono-sm" id="clock"></span>
+  </div>
+</div>
+
+<div class="sync-bar">
+  <div class="sync-status">
+    <div class="sync-dot disconnected" id="sync-dot"></div>
+    <span id="sync-label" style="color:var(--mt)">Not connected to Google Drive</span>
+  </div>
+  <input type="text" class="form-input" id="client-id-input" placeholder="Paste Google Client ID…" style="width:260px;padding:3px 8px;font-size:10px">
+  <button class="btn btn-green" id="connect-btn" onclick="connectDrive()">Connect Drive</button>
+  <button class="btn btn-ghost" onclick="openModal('modal-add')" title="Add habit">＋ Habit</button>
+  <button class="btn btn-ghost" onclick="openModal('modal-manage')" title="Manage">✎</button>
+  <button class="btn btn-ghost" onclick="openModal('modal-settings')" title="Settings">⚙</button>
+  <button class="btn btn-ghost" onclick="exportData()" title="Export">↓</button>
+  <label class="btn btn-ghost" title="Import" style="cursor:pointer">↑<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+</div>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="sb-section">Views</div>
+    <div class="nav-item active"><div class="nav-dot"></div>Weekly grid</div>
+    <div class="nav-item"><div class="nav-dot"></div>Heatmap</div>
+    <div class="nav-item"><div class="nav-dot"></div>Activity log</div>
+    <div class="sb-section" style="margin-top:6px">Habits</div>
+    <div class="nav-item"><div class="nav-dot" style="background:var(--bl)"></div>Learning</div>
+    <div class="nav-item"><div class="nav-dot" style="background:var(--gr)"></div>Health</div>
+    <div class="sb-section" style="margin-top:6px">Target</div>
+    <div style="padding:6px 14px">
+      <div style="font-family:var(--mono);font-size:20px;color:var(--gr)" id="side-total">0</div>
+      <div style="font-size:10px;color:var(--mt);margin-top:2px">hrs this week</div>
+      <div style="font-size:10px;color:var(--dm);margin-top:1px" id="side-target-label">target: 37 hrs</div>
+      <div style="height:2px;background:var(--bdr2);border-radius:2px;margin-top:6px;overflow:hidden">
+        <div id="side-bar" style="height:100%;background:var(--gr);border-radius:2px;width:0%;transition:width .4s"></div>
+      </div>
+    </div>
+    <div class="sb-section" style="margin-top:6px">Drive Sync</div>
+    <div style="padding:6px 14px;display:flex;flex-direction:column;gap:4px">
+      <div id="drive-file-info" style="font-size:10px;color:var(--dm)">Not connected</div>
+      <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="forceSave()">Force save</button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">Weekly habit grid</div>
+        <div class="dash-sub" id="dash-sub">index: habit-tracker | period: loading…</div>
+      </div>
+      <div class="week-nav">
+        <button onclick="changeWeek(-1)">‹</button>
+        <div class="week-label" id="week-label"></div>
+        <button onclick="changeWeek(1)">›</button>
+        <button onclick="goToday()" style="margin-left:2px">Today</button>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Completion</div>
+        <div class="kpi-val" id="kpi-pct" style="color:var(--rd)">0%</div>
+        <div class="kpi-sub" id="kpi-pct-sub">0 / 0 habits</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-pct-bar" style="background:var(--rd);width:0%"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Learning hrs</div>
+        <div class="kpi-val" id="kpi-hrs" style="color:var(--bl)">0</div>
+        <div class="kpi-sub" id="kpi-hrs-sub">target: 37 hrs</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-hrs-bar" style="background:var(--bl);width:0%"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Current streak</div>
+        <div class="kpi-val" id="kpi-streak" style="color:var(--am)">0</div>
+        <div class="kpi-sub">days in a row</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-streak-bar" style="background:var(--am);width:0%"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Missed sessions</div>
+        <div class="kpi-val" id="kpi-missed" style="color:var(--rd)">0</div>
+        <div class="kpi-sub">this week</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-missed-bar" style="background:var(--rd);width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span style="color:var(--gr)">■</span> Habit log</div>
+        <div style="font-size:10px;color:var(--mt)">Click cell to toggle: empty → done → missed</div>
+      </div>
+      <table class="habit-grid">
+        <thead>
+          <tr>
+            <th class="nc">Habit</th>
+            <th id="th0"></th><th id="th1"></th><th id="th2"></th>
+            <th id="th3"></th><th id="th4"></th><th id="th5"></th><th id="th6"></th>
+            <th style="width:50px">Streak</th>
+          </tr>
+        </thead>
+        <tbody id="habit-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="bottom-row">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span style="color:var(--gr)">■</span> Activity heatmap — last 10 weeks</div></div>
+        <div class="heatmap-grid" id="heatmap"></div>
+        <div class="legend">
+          <div class="leg"><div class="leg-box" style="background:var(--bdr)"></div>None</div>
+          <div class="leg"><div class="leg-box" style="background:#0d4429"></div>25%</div>
+          <div class="leg"><div class="leg-box" style="background:#006d32"></div>50%</div>
+          <div class="leg"><div class="leg-box" style="background:#26a641"></div>75%</div>
+          <div class="leg"><div class="leg-box" style="background:var(--gr)"></div>100%</div>
+          <div class="leg"><div class="leg-box" style="background:var(--rd-bg);border:1px solid var(--rd-bd)"></div>Missed</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><span style="color:var(--bl)">■</span> Activity log</div></div>
+        <div class="log-body" id="log-body"><div style="padding:16px;text-align:center;color:var(--dm);font-size:11px">No activity yet.</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-title">Add habit <button class="modal-close" onclick="closeModal('modal-add')">×</button></div>
+    <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="add-name" placeholder="e.g. Read 20 pages"></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Category</label>
+        <select class="form-input" id="add-tag"><option value="learn">learn</option><option value="health">health</option></select></div>
+      <div class="form-row"><label class="form-label">Schedule</label>
+        <select class="form-input" id="add-days"><option value="all">Every day</option><option value="weekday">Weekdays</option><option value="weekend">Weekends</option></select></div>
+    </div>
+    <div class="form-row"><label class="form-label">Hours per completion (learning KPI)</label><input class="form-input" id="add-hrs" type="number" min="0" max="12" step="0.5" value="0"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add')">Cancel</button>
+      <button class="btn btn-green" onclick="addHabit()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-manage">
+  <div class="modal">
+    <div class="modal-title">Manage habits <button class="modal-close" onclick="closeModal('modal-manage')">×</button></div>
+    <div id="manage-list" style="display:flex;flex-direction:column;gap:7px"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-manage')">Done</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">Edit habit <button class="modal-close" onclick="closeModal('modal-edit')">×</button></div>
+    <input type="hidden" id="edit-idx">
+    <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="edit-name"></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Category</label>
+        <select class="form-input" id="edit-tag"><option value="learn">learn</option><option value="health">health</option></select></div>
+      <div class="form-row"><label class="form-label">Schedule</label>
+        <select class="form-input" id="edit-days"><option value="all">Every day</option><option value="weekday">Weekdays</option><option value="weekend">Weekends</option></select></div>
+    </div>
+    <div class="form-row"><label class="form-label">Hours per completion</label><input class="form-input" id="edit-hrs" type="number" min="0" max="12" step="0.5"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn btn-green" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-title">Settings <button class="modal-close" onclick="closeModal('modal-settings')">×</button></div>
+    <div class="form-row"><label class="form-label">Dashboard title</label><input class="form-input" id="set-title" placeholder="DevOps & SRE Learning"></div>
+    <div class="form-row"><label class="form-label">Weekly learning target (hrs)</label><input class="form-input" id="set-target" type="number" min="1" max="200" value="37"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-settings')">Cancel</button>
+      <button class="btn btn-green" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-drive-help">
+  <div class="modal" style="width:500px">
+    <div class="modal-title">Set up Google Drive sync <button class="modal-close" onclick="closeModal('modal-drive-help')">×</button></div>
+    <div class="drive-setup">
+      <div class="drive-setup-title">📁 One-time Google Cloud setup (~5 min)</div>
+      <div class="drive-step"><div class="drive-step-num">1</div><span>Go to <strong style="color:var(--bl)">console.cloud.google.com</strong> → Create a new project (e.g. "Habit Tracker")</span></div>
+      <div class="drive-step"><div class="drive-step-num">2</div><span>Enable the <strong style="color:var(--tx)">Google Drive API</strong> under APIs & Services → Library</span></div>
+      <div class="drive-step"><div class="drive-step-num">3</div><span>Go to <strong style="color:var(--tx)">APIs & Services → OAuth consent screen</strong> → External → fill app name → add your email as test user</span></div>
+      <div class="drive-step"><div class="drive-step-num">4</div><span>Go to <strong style="color:var(--tx)">Credentials → Create Credentials → OAuth 2.0 Client ID</strong> → Web application</span></div>
+      <div class="drive-step"><div class="drive-step-num">5</div><span>Add your GitHub Pages URL to <strong style="color:var(--tx)">Authorized JavaScript origins</strong>, e.g.:</span></div>
+      <div class="code-block" id="origin-url">https://YOUR_USERNAME.github.io</div>
+      <div class="drive-step"><div class="drive-step-num">6</div><span>Copy the <strong style="color:var(--gr)">Client ID</strong> and paste it into the sync bar above, then click <strong style="color:var(--gr)">Connect Drive</strong></span></div>
+      <div style="font-size:10px;color:var(--dm);margin-top:4px">Your data is saved as <code style="color:var(--gr)">habit-tracker-data.json</code> in your Google Drive root. Only you can access it.</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-drive-help')">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DEFAULT_HABITS=[
+  {id:'morning',name:'Morning session (7–9 AM)',tag:'learn',hrs:2,days:'weekday'},
+  {id:'evening',name:'Evening session (9 PM–12 AM)',tag:'learn',hrs:3,days:'weekday'},
+  {id:'wknd',name:'Weekend deep study (5+ hrs)',tag:'learn',hrs:5,days:'weekend'},
+  {id:'sleep',name:'Sleep by 12 AM',tag:'health',hrs:0,days:'all'},
+  {id:'wake',name:'Up at 7 AM (no snooze)',tag:'health',hrs:0,days:'all'},
+  {id:'notes',name:'Study notes written',tag:'learn',hrs:0,days:'all'},
+];
+
+let HABITS=[],data={},log=[],settings={title:'DevOps & SRE Learning',target:37};
+let weekOffset=0;
+let driveFileId=null,driveToken=null,driveClientId=null,saveTimer=null;
+const DRIVE_FILE='habit-tracker-data.json';
+const SCOPES='https://www.googleapis.com/auth/drive.file';
+
+// Load from localStorage
+try{HABITS=JSON.parse(localStorage.getItem('kib_habits')||'null')||JSON.parse(JSON.stringify(DEFAULT_HABITS));}catch(e){HABITS=JSON.parse(JSON.stringify(DEFAULT_HABITS));}
+try{data=JSON.parse(localStorage.getItem('kib_ht')||'{}');}catch(e){}
+try{log=JSON.parse(localStorage.getItem('kib_log')||'[]');}catch(e){}
+try{settings=JSON.parse(localStorage.getItem('kib_settings')||'null')||settings;}catch(e){}
+try{driveClientId=localStorage.getItem('kib_client_id')||null;}catch(e){}
+
+if(driveClientId){document.getElementById('client-id-input').value=driveClientId;}
+
+// ── Utils ──
+function dateKey(d){return d.toISOString().slice(0,10);}
+function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function isToday(d){return dateKey(d)===dateKey(today());}
+function isWeekend(d){return d.getDay()===0||d.getDay()===6;}
+function applies(h,d){if(h.days==='weekday')return !isWeekend(d);if(h.days==='weekend')return isWeekend(d);return true;}
+function getWeekStart(off){const t=today();const dow=(t.getDay()+6)%7;const ms=new Date(t);ms.setDate(t.getDate()-dow+off*7);return ms;}
+function weekDays(off){const ws=getWeekStart(off);return Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(ws.getDate()+i);return d;});}
+function cellKey(hid,dk){return hid+'_'+dk;}
+function getState(hid,dk){return data[cellKey(hid,dk)]||'none';}
+
+// ── Persist ──
+function saveLocal(){
+  try{
+    localStorage.setItem('kib_ht',JSON.stringify(data));
+    localStorage.setItem('kib_log',JSON.stringify(log.slice(-200)));
+    localStorage.setItem('kib_habits',JSON.stringify(HABITS));
+    localStorage.setItem('kib_settings',JSON.stringify(settings));
+    if(driveClientId) localStorage.setItem('kib_client_id',driveClientId);
+  }catch(e){}
+}
+function scheduleDriveSave(){
+  if(!driveToken||!driveFileId) return;
+  clearTimeout(saveTimer);
+  setSyncStatus('saving','Saving to Drive…');
+  saveTimer=setTimeout(()=>saveToDrive(),1500);
+}
+
+// ── Google Drive ──
+function connectDrive(){
+  const cid=document.getElementById('client-id-input').value.trim();
+  if(!cid){openModal('modal-drive-help');return;}
+  driveClientId=cid;
+  saveLocal();
+  const params=new URLSearchParams({
+    client_id:cid,
+    redirect_uri:'postmessage',
+    response_type:'token',
+    scope:SCOPES,
+    prompt:'consent'
+  });
+  const popup=window.open('https://accounts.google.com/o/oauth2/v2/auth?'+params,'Drive Auth','width=500,height=600');
+  const listener=e=>{
+    if(e.data&&e.data.access_token){
+      driveToken=e.data.access_token;
+      window.removeEventListener('message',listener);
+      loadFromDrive();
+    }
+  };
+  window.addEventListener('message',listener);
+  // Poll for token from popup URL (implicit flow)
+  const poll=setInterval(()=>{
+    try{
+      if(popup.closed){clearInterval(poll);return;}
+      const hash=popup.location.hash;
+      if(hash&&hash.includes('access_token')){
+        clearInterval(poll);
+        popup.close();
+        const p=new URLSearchParams(hash.slice(1));
+        driveToken=p.get('access_token');
+        loadFromDrive();
+      }
+    }catch(e){}
+  },500);
+}
+
+function setSyncStatus(state,msg){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  dot.className='sync-dot '+state;
+  lbl.textContent=msg;
+  lbl.style.color=state==='ok'?'var(--gr)':state==='saving'?'var(--am)':state==='offline'?'var(--rd)':'var(--mt)';
+}
+
+async function findOrCreateFile(){
+  // Search for existing file
+  const res=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE}'+and+trashed=false&fields=files(id,name,modifiedTime)`,{
+    headers:{Authorization:'Bearer '+driveToken}
+  });
+  const j=await res.json();
+  if(j.files&&j.files.length>0){
+    driveFileId=j.files[0].id;
+    document.getElementById('drive-file-info').textContent='File: '+DRIVE_FILE+'\n'+j.files[0].modifiedTime.slice(0,10);
+    return j.files[0].id;
+  }
+  // Create new file
+  const meta=JSON.stringify({name:DRIVE_FILE,mimeType:'application/json'});
+  const body=JSON.stringify({habits:HABITS,data,log,settings});
+  const form=new FormData();
+  form.append('metadata',new Blob([meta],{type:'application/json'}));
+  form.append('file',new Blob([body],{type:'application/json'}));
+  const cr=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    method:'POST',headers:{Authorization:'Bearer '+driveToken},body:form
+  });
+  const cj=await cr.json();
+  driveFileId=cj.id;
+  document.getElementById('drive-file-info').textContent='File: '+DRIVE_FILE+' (new)';
+  return cj.id;
+}
+
+async function loadFromDrive(){
+  setSyncStatus('saving','Connecting…');
+  try{
+    const fid=await findOrCreateFile();
+    const res=await fetch('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media',{
+      headers:{Authorization:'Bearer '+driveToken}
+    });
+    const j=await res.json();
+    if(j.habits) HABITS=j.habits;
+    if(j.data)   data=j.data;
+    if(j.log)    log=j.log;
+    if(j.settings) settings=j.settings;
+    saveLocal();
+    applySettings();
+    render();
+    setSyncStatus('ok','Synced with Google Drive');
+    toast('Loaded from Drive ✓');
+  }catch(e){
+    setSyncStatus('offline','Drive error — using local data');
+    toast('Drive error: '+e.message);
+  }
+}
+
+async function saveToDrive(){
+  if(!driveToken||!driveFileId) return;
+  try{
+    const body=JSON.stringify({habits:HABITS,data,log,settings,saved:new Date().toISOString()});
+    await fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{
+      method:'PATCH',
+      headers:{Authorization:'Bearer '+driveToken,'Content-Type':'application/json'},
+      body
+    });
+    setSyncStatus('ok','Saved to Drive · '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+    document.getElementById('drive-file-info').textContent='Last saved: '+new Date().toLocaleTimeString();
+  }catch(e){
+    setSyncStatus('offline','Drive save failed');
+  }
+}
+
+function forceSave(){
+  saveLocal();
+  if(driveToken&&driveFileId) saveToDrive();
+  else toast('Saved locally');
+}
+
+// ── State ──
+function setState(hid,dk,state){
+  const k=cellKey(hid,dk);
+  if(state==='none') delete data[k]; else data[k]=state;
+  const h=HABITS.find(x=>x.id===hid);
+  const ts=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  log.unshift({ts,habit:h.name,state,date:dk});
+  saveLocal();
+  scheduleDriveSave();
+}
+
+function toggle(hid,dk,btn){
+  const cur=getState(hid,dk);
+  const next=cur==='none'?'done':cur==='done'?'missed':'none';
+  setState(hid,dk,next);
+  applyBtn(btn,next);
+  render(false);
+}
+
+function applyBtn(btn,state){
+  btn.className='cell-btn';
+  btn.textContent='';
+  if(state==='done'){btn.classList.add('done');btn.textContent='✓';}
+  else if(state==='missed'){btn.classList.add('missed');btn.textContent='✕';}
+}
+
+// ── Render ──
+function render(rebuild=true){
+  const days=weekDays(weekOffset);
+  const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  document.getElementById('week-label').textContent=fmt(days[0])+' – '+fmt(days[6]);
+  document.getElementById('dash-sub').textContent='index: habit-tracker | period: '+fmt(days[0])+' to '+fmt(days[6]);
+
+  days.forEach((d,i)=>{
+    const th=document.getElementById('th'+i);
+    const isTod=isToday(d);
+    const c=isTod?'var(--bl)':'var(--mt)';
+    const c2=isTod?'var(--bl)':'var(--tx)';
+    th.innerHTML=`<div style="font-size:9px;color:${c}">${DDAYS[d.getDay()]}</div><div style="font-family:var(--mono);font-size:11px;color:${c2};margin-top:1px">${d.getDate()}</div>`;
+    th.style.background=isTod?'rgba(88,166,255,.07)':'';
+  });
+
+  if(rebuild){
+    const tbody=document.getElementById('habit-tbody');
+    tbody.innerHTML='';
+    HABITS.forEach(h=>{
+      const tr=document.createElement('tr');
+      const nc=document.createElement('td');nc.className='nc';
+      nc.innerHTML=`<div class="habit-name"><span class="tag tag-${h.tag}">${h.tag}</span>${h.name}</div>`;
+      tr.appendChild(nc);
+      days.forEach((d,i)=>{
+        const dk=dateKey(d);
+        const td=document.createElement('td');
+        if(isToday(d)) td.style.background='rgba(88,166,255,.04)';
+        if(!applies(h,d)){td.innerHTML='<span style="color:var(--dm);font-size:9px">—</span>';}
+        else{
+          const state=getState(h.id,dk);
+          const btn=document.createElement('button');
+          btn.className='cell-btn';
+          applyBtn(btn,state);
+          const _dk=dk,_btn=btn,_hid=h.id;
+          btn.onclick=()=>toggle(_hid,_dk,_btn);
+          td.appendChild(btn);
+        }
+        tr.appendChild(td);
+      });
+      const std=document.createElement('td');
+      let sc=0;const t=today();
+      for(let i=0;i<90;i++){const d2=new Date(t);d2.setDate(t.getDate()-i);if(!applies(h,d2))continue;if(getState(h.id,dateKey(d2))==='done')sc++;else break;}
+      std.innerHTML=sc>0?`<span class="streak-pill">${sc}d</span>`:'<span style="color:var(--dm);font-size:9px">—</span>';
+      tr.appendChild(std);
+      tbody.appendChild(tr);
+    });
+  } else {
+    const rows=document.getElementById('habit-tbody').rows;
+    HABITS.forEach((h,hi)=>{
+      days.forEach((d,di)=>{
+        if(!applies(h,d))return;
+        const btn=rows[hi].cells[di+1].querySelector('button');
+        if(btn) applyBtn(btn,getState(h.id,dateKey(d)));
+      });
+      let sc=0;const t=today();
+      for(let i=0;i<90;i++){const d2=new Date(t);d2.setDate(t.getDate()-i);if(!applies(h,d2))continue;if(getState(h.id,dateKey(d2))==='done')sc++;else break;}
+      rows[hi].cells[8].innerHTML=sc>0?`<span class="streak-pill">${sc}d</span>`:'<span style="color:var(--dm);font-size:9px">—</span>';
+    });
+  }
+
+  // KPIs
+  let done=0,total=0,hrs=0,missed=0;
+  days.forEach(d=>{HABITS.forEach(h=>{if(!applies(h,d))return;total++;const st=getState(h.id,dateKey(d));if(st==='done'){done++;hrs+=h.hrs;}if(st==='missed')missed++;});});
+  const pct=total>0?Math.round(done/total*100):0;
+  const pc=pct>=80?'var(--gr)':pct>=50?'var(--am)':'var(--rd)';
+  document.getElementById('kpi-pct').textContent=pct+'%';
+  document.getElementById('kpi-pct').style.color=pc;
+  document.getElementById('kpi-pct-sub').textContent=done+' / '+total+' habits';
+  document.getElementById('kpi-pct-bar').style.cssText=`width:${pct}%;background:${pc}`;
+  document.getElementById('kpi-hrs').textContent=hrs;
+  document.getElementById('kpi-hrs-sub').textContent='target: '+settings.target+' hrs';
+  document.getElementById('kpi-hrs-bar').style.width=Math.min(100,Math.round(hrs/settings.target*100))+'%';
+  document.getElementById('kpi-missed').textContent=missed;
+  document.getElementById('kpi-missed-bar').style.width=Math.min(100,Math.round(missed/Math.max(1,total)*100))+'%';
+
+  // Streak
+  let streak=0,cur2=0;
+  const t=today();
+  for(let i=0;i<120;i++){
+    const d=new Date(t);d.setDate(t.getDate()-i);
+    const hs=HABITS.filter(h=>applies(h,d));
+    const allDone=hs.length>0&&hs.every(h=>getState(h.id,dateKey(d))==='done');
+    if(allDone){cur2++;if(i===0)streak=cur2;}else{if(i>0)break;cur2=0;}
+  }
+  document.getElementById('kpi-streak').textContent=streak;
+  document.getElementById('kpi-streak-bar').style.width=Math.min(100,Math.round(streak/14*100))+'%';
+  document.getElementById('side-total').textContent=hrs;
+  document.getElementById('side-bar').style.width=Math.min(100,Math.round(hrs/settings.target*100))+'%';
+  document.getElementById('side-target-label').textContent='target: '+settings.target+' hrs';
+
+  // Heatmap
+  const hm=document.getElementById('heatmap');hm.innerHTML='';
+  for(let i=69;i>=0;i--){
+    const d=new Date(t);d.setDate(t.getDate()-i);
+    const dk=dateKey(d);
+    const hs=HABITS.filter(h=>applies(h,d));
+    let dc=0,mc=0;
+    hs.forEach(h=>{const st=getState(h.id,dk);if(st==='done')dc++;if(st==='missed')mc++;});
+    const score=hs.length>0?dc/hs.length:0;
+    const cell=document.createElement('div');
+    cell.className='hm-cell '+(mc>0&&dc===0?'hm-missed':score===0?'hm-0':score<0.25?'hm-1':score<0.5?'hm-2':score<0.75?'hm-3':'hm-4');
+    cell.title=dk+' · '+(hs.length>0?Math.round(score*100)+'% complete':'no habits');
+    hm.appendChild(cell);
+  }
+
+  // Log
+  const lb=document.getElementById('log-body');
+  if(!log.length){lb.innerHTML='<div style="padding:16px;text-align:center;color:var(--dm);font-size:11px">No activity yet.</div>';return;}
+  lb.innerHTML=log.slice(0,30).map(e=>{
+    const col=e.state==='done'?'var(--gr)':e.state==='missed'?'var(--rd)':'var(--dm)';
+    const badge=e.state==='done'?`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:var(--gr-bg);color:var(--gr);border:1px solid var(--gr-bd)">done</span>`:e.state==='missed'?`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:var(--rd-bg);color:var(--rd);border:1px solid var(--rd-bd)">missed</span>`:`<span style="font-size:9px;color:var(--dm)">cleared</span>`;
+    return `<div class="log-row"><div class="log-time">${e.ts}</div><div class="log-dot" style="background:${col}"></div><div style="flex:1;color:var(--tx)">${e.habit}</div>${badge}</div>`;
+  }).join('');
+}
+
+// ── Modal helpers ──
+function openModal(id){
+  if(id==='modal-manage') renderManage();
+  if(id==='modal-settings'){document.getElementById('set-title').value=settings.title;document.getElementById('set-target').value=settings.target;}
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+// ── Habit management ──
+function addHabit(){
+  const name=document.getElementById('add-name').value.trim();
+  if(!name){alert('Enter a habit name.');return;}
+  HABITS.push({id:'h_'+Date.now(),name,tag:document.getElementById('add-tag').value,days:document.getElementById('add-days').value,hrs:parseFloat(document.getElementById('add-hrs').value)||0});
+  saveLocal();scheduleDriveSave();closeModal('modal-add');
+  document.getElementById('add-name').value='';render();toast('Habit added ✓');
+}
+function renderManage(){
+  const el=document.getElementById('manage-list');
+  if(!HABITS.length){el.innerHTML='<div style="color:var(--mt);font-size:11px;text-align:center;padding:12px">No habits yet.</div>';return;}
+  el.innerHTML=HABITS.map((h,i)=>`<div class="habit-item"><span class="tag tag-${h.tag}">${h.tag}</span><span class="habit-item-name">${h.name}</span><span class="habit-item-meta">${h.days}·${h.hrs}h</span><button class="btn btn-ghost" style="padding:2px 8px;font-size:10px" onclick="openEdit(${i})">Edit</button><button class="btn btn-red" style="padding:2px 8px;font-size:10px" onclick="delHabit(${i})">✕</button></div>`).join('');
+}
+function openEdit(i){
+  const h=HABITS[i];
+  document.getElementById('edit-idx').value=i;
+  document.getElementById('edit-name').value=h.name;
+  document.getElementById('edit-tag').value=h.tag;
+  document.getElementById('edit-days').value=h.days;
+  document.getElementById('edit-hrs').value=h.hrs;
+  closeModal('modal-manage');openModal('modal-edit');
+}
+function saveEdit(){
+  const i=parseInt(document.getElementById('edit-idx').value);
+  HABITS[i]={...HABITS[i],name:document.getElementById('edit-name').value.trim(),tag:document.getElementById('edit-tag').value,days:document.getElementById('edit-days').value,hrs:parseFloat(document.getElementById('edit-hrs').value)||0};
+  saveLocal();scheduleDriveSave();closeModal('modal-edit');render();toast('Habit updated ✓');
+}
+function delHabit(i){
+  if(!confirm('Delete "'+HABITS[i].name+'"?'))return;
+  HABITS.splice(i,1);saveLocal();scheduleDriveSave();renderManage();render();toast('Habit deleted');
+}
+
+// ── Settings ──
+function saveSettings(){
+  settings.title=document.getElementById('set-title').value.trim()||'My Habits';
+  settings.target=parseInt(document.getElementById('set-target').value)||37;
+  saveLocal();scheduleDriveSave();applySettings();closeModal('modal-settings');render();toast('Settings saved ✓');
+}
+function applySettings(){
+  document.getElementById('bc-title').textContent=settings.title;
+}
+
+// ── Export / Import ──
+function exportData(){
+  const blob=new Blob([JSON.stringify({habits:HABITS,data,log,settings,exported:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='habit-tracker-'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Exported ✓');
+}
+function importData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const p=JSON.parse(e.target.result);
+      if(!p.habits||!p.data)throw new Error('Invalid file');
+      if(!confirm('Import '+p.habits.length+' habits from '+((p.exported||'').slice(0,10)||'backup')+'?\nThis replaces current data.'))return;
+      HABITS=p.habits;data=p.data;log=p.log||[];settings=p.settings||settings;
+      saveLocal();scheduleDriveSave();applySettings();render();toast('Imported ✓');
+    }catch(err){alert('Invalid file: '+err.message);}
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+// ── Toast ──
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── Nav ──
+function changeWeek(d){weekOffset+=d;render();}
+function goToday(){weekOffset=0;render();}
+
+// ── Clock ──
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+updateClock();setInterval(updateClock,1000);
+
+// ── Auto-reconnect Drive if client ID saved ──
+if(driveClientId){
+  document.getElementById('connect-btn').textContent='Reconnect Drive';
+  setSyncStatus('disconnected','Client ID saved — click Reconnect Drive');
+}
+
+applySettings();render();
+</script>
